@@ -36,10 +36,10 @@ def get_value_info(year, area, sex, age):
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
     cursor.execute(f"SELECT value FROM eurf310005_{year} WHERE area = %s AND sex = %s AND age = %s", (area, sex, age))
-    value = cursor.fetchone()
+    result = cursor.fetchall()
     cursor.close()
     conn.close()
-    return value
+    return result[0] if result else None
 
 # 地域、年齢、性別リストを取得
 def get_area_and_age_lists():

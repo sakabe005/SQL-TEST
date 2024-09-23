@@ -3,3 +3,4 @@ mysql-connector-python
 prophet
 numpy<2.0
 plotly
+mysql-connector-python
