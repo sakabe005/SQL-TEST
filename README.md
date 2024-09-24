@@ -1,12 +1,3 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
 
 # Python MySQL 統合と CSV インポート・予測
 
@@ -47,7 +38,8 @@ DB_PASSWORD=password
 以下のコマンドで Docker イメージをビルドします:
 
 ```bash
-docker build -t python-mysql-app .
+cd /SQL-TEST/
+docker-compose build
 ```
 
 ### ステップ 2: Docker コンテナの実行
@@ -55,7 +47,7 @@ docker build -t python-mysql-app .
 コンテナを以下のコマンドで実行します:
 
 ```bash
-docker run --env-file .env -v $(pwd):/usr/src/app python-mysql-app
+docker-compose up -d
 ```
 
 ### ステップ 3: MySQL 設定とデータインポート
@@ -68,6 +60,7 @@ docker run --env-file .env -v $(pwd):/usr/src/app python-mysql-app
 ### ステップ 4: 予測
 
 CSV データがインポートされた後、`prediction.py` スクリプトは Prophet を使用して 2024 年および 2030 年の予測を生成します。結果は MySQL の `2024_future` および `2030_future` テーブルに保存されます。
+終了までに20分以上時間がかかる場合があります。
 
 ## スクリプト
 
