@@ -10,8 +10,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# wait-for-mysql.sh と setup-db.sh に実行権限を与える
-RUN chmod +x /usr/src/app/wait-for-mysql.sh /usr/src/app/setup-db.sh
-
 # コンテナ起動時にMySQLのセットアップとPythonスクリプトの実行を行う
-CMD /usr/src/app/wait-for-mysql.sh && /usr/src/app/setup-db.sh
+CMD sh /usr/src/app/wait-for-mysql.sh && sh /usr/src/app/setup-db.sh
