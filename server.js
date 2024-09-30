@@ -15,6 +15,47 @@ app.use(express.static('public'));
 
 app.get('/age-distribution-by-year', async (req, res) => {
   try {
+    const queryType = req.query.query || 'default';
+    const gender = req.query.gender || '';
+    const region = req.query.region || '';
+    let query = '';
+    if( gender!=='' && region!=='')
+      {
+      query = `
+        SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${queryType}' as year
+        FROM eurf310005_${queryType}
+        WHERE yyyymm = '${queryType}01' AND sex = '${gender}' AND area = '${region}'
+        GROUP BY age_group
+        ORDER BY age_group
+      `;
+    }
+    else if( gender==='' && region!==''){
+      query = `
+        SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${queryType}' as year
+        FROM eurf310005_${queryType}
+        WHERE yyyymm = '${queryType}01' AND area = '${region}'
+        GROUP BY age_group
+        ORDER BY age_group
+      `;
+    }
+    else if( gender!=='' && region===''){
+      query = `
+        SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${queryType}' as year
+        FROM eurf310005_${queryType}
+        WHERE yyyymm = '${queryType}01' AND  sex = '${gender}'
+        GROUP BY age_group
+        ORDER BY age_group
+      `;
+    }
+    else if( gender==='' && region===''){
+      query = `
+        SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${queryType}' as year
+        FROM eurf310005_${queryType}
+        WHERE yyyymm = '${queryType}01'
+        GROUP BY age_group
+        ORDER BY age_group
+      `;
+    }
     const conn = await mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USERNAME,
@@ -22,26 +63,15 @@ app.get('/age-distribution-by-year', async (req, res) => {
       database: 'kobe'
     });
 
-    const years = ['2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
-    const results = [];
-
-    for (const year of years) {
-      const [rows, fields] = await conn.query(`
-        SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${year}' as year
-        FROM eurf310005_${year}
-        GROUP BY age_group
-        ORDER BY age_group
-      `);
-      results.push(...rows);
-    }
-
+    const [rows, fields] = await conn.query(query);
     await conn.end();
-    res.json(results);
+    res.json(rows);
   } catch (err) {
     console.error('Error executing query:', err);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
