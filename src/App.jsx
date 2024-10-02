@@ -13,7 +13,7 @@ const App = () => {
   const [selectedRegion, setSelectedRegion] = useState('東灘区'); 
   const [selectedYear, setSelectedYear] = useState('2013'); 
   const [selectedYear2, setSelectedYear2] = useState('2013'); 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = 'http://localhost:3001';;
   const chartRefs = useRef([]);
 
   const genderOptions = [
@@ -46,6 +46,8 @@ const App = () => {
     { value: '2021', label: '2021' },
     { value: '2022', label: '2022' },
     { value: '2023', label: '2023' },
+    { value: '2024', label: '2024' },
+    { value: '2030', label: '2030' },
   ];
 
   const fetchData = async (query, gender, region) => {
