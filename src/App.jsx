@@ -64,6 +64,7 @@ const App = () => {
       console.error('Error fetching age distribution by year:', error);
     }
   };
+
   const fetchData2 = async (query, gender, region) => {
     try {
       const response2 = await fetch(`${apiUrl}/age-distribution-by-year?query=${query}&gender=${gender}&region=${region}`);
@@ -123,6 +124,80 @@ const App = () => {
     return acc;
   }, {});
 
+  const combinedData = (groupedData, groupedData2) => {
+    const combineData = {};
+    let year1 = Object.keys(groupedData)[0]; 
+    let year2 = Object.keys(groupedData2)[0]; 
+    if (groupedData[year1] && groupedData2[year2]) {
+      combineData[year1] = [];
+      for (let i = 0; i < groupedData[year1].length; i++) {
+        combineData[year1].push({ ...groupedData[year1][i] });
+      }
+      combineData[year2] = [];
+      for (let i = 0; i < groupedData2[year2].length; i++) {
+        combineData[year2].push({ ...groupedData2[year2][i] });
+      }
+    }
+    console.log(combineData);
+    return combineData;    
+  };
+
+
+  const diff = (groupedData, groupedData2) => {
+    const year1 = Object.keys(groupedData)[0]; 
+    const year2 = Object.keys(groupedData2)[0]; 
+    const diffData = {};
+    const range = `${year1} vs ${year2}`;
+
+    if (!diffData[range]) {
+      diffData[range] = [];
+    }
+
+
+    try {
+      if (!groupedData[year1]) {
+        throw new Error(`Data for year ${year1} is missing in groupedData.`);
+      }
+      if (!groupedData2[year2]) {
+        throw new Error(`Data for year ${year2} is missing in groupedData2.`);
+      }
+      for (let i = 0; i < groupedData[year1].length; i++) {
+        let diffCount = parseInt(groupedData2[year2][i].count) - parseInt(groupedData[year1][i].count);
+        diffData[range].push({
+            age_group: groupedData[year1][i].age_group,
+            count: diffCount,
+            year: year2
+        });
+    }
+    
+     } 
+     catch (error) {
+        console.error('Error calculating difference by year:', error);
+    }
+    return diffData;
+  };
+ 
+  // 年数間のdiffを取る
+  const diffData = diff(groupedData, groupedData2);
+  // データの結合
+  const combined = combinedData(groupedData, groupedData2);
+  
+  const ageGroups = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  
+  const ageData = {
+    labels: ageGroups.map(age => `${age}代`),
+    datasets: Object.keys(combined).map((year, index) => ({
+    label: `年齢分布 (${year})`,
+    data: ageGroups.map(ageGroup => {
+      const item = combined[year].find(item => item.age_group === ageGroup);
+      return item ? parseInt(item.count) : 0;
+    }),
+    backgroundColor : index === 0 ? `rgba(0, 0, 255, 1)` : `rgba(0, 255, 0, 1)`,
+    borderColor: `rgba(0, 0, 0, 1)`,
+    borderWidth: 1,
+    })),
+  };
+
   return (
     <div>
       <Select
@@ -145,18 +220,32 @@ const App = () => {
         defaultValue={YearOptions[0]}
         onChange={handleYearChange2}
       />
-      <button onClick={() => handleButtonClick}>結果表示</button>
-      
-      
-      {Object.keys(groupedData).map((year, index) => {
-        const ageData = {
-          labels: groupedData[year].map(item => `${item.age_group}歳`),
+      <button onClick={handleButtonClick}>結果表示</button>
+    
+      <div style={{ width: '600px', height: '400px' }}>
+        <Bar
+          ref={(el) => (chartRefs.current[0] = el)}
+          data={ageData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: { position: 'top' },
+              title: { display: true, text: '年齢分布' },
+            },
+          }}
+        />
+      </div>
+    
+      {Object.keys(diffData).map((year, index) => {
+        console.log('test ', year);
+        const ageData3 = {
+          labels: diffData[year].map(item => `${item.age_group}代`),
           datasets: [
             {
               label: '人数',
-              data: groupedData[year].map(item => item.count),
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
+              data: diffData[year].map(item => item.count),
+              backgroundColor : `rgba(255, 0, 0, 1)`,
+              borderColor: 'rgba(0, 0, 0, 1)',
               borderWidth: 1,
             },
           ],
@@ -166,42 +255,12 @@ const App = () => {
           <div key={year} style={{ width: '600px', height: '400px' }}>
             <Bar
               ref={(el) => (chartRefs.current[index] = el)}
-              data={ageData}
+              data={ageData3}
               options={{
                 responsive: true,
                 plugins: {
                   legend: { position: 'top' },
-                  title: { display: true, text: `年齢分布 (${year})` },
-                },
-              }}
-            />
-          </div>
-        );
-      })}
-      {Object.keys(groupedData2).map((year, index) => {
-        const ageData2 = {
-          labels: groupedData2[year].map(item => `${item.age_group}歳`),
-          datasets: [
-            {
-              label: '人数',
-              data: groupedData2[year].map(item => item.count),
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-            },
-          ],
-        };
-
-        return (
-          <div key={year} style={{ width: '600px', height: '400px' }}>
-            <Bar
-              ref={(el) => (chartRefs.current[index] = el)}
-              data={ageData2}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: { position: 'top' },
-                  title: { display: true, text: `年齢分布 (${year})` },
+                  title: { display: true, text: `年齢別人口変化分布 (${year})` },
                 },
               }}
             />
@@ -211,5 +270,4 @@ const App = () => {
     </div>
   );
 };
-
 export default App;
