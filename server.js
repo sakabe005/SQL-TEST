@@ -91,7 +91,6 @@ app.get('/age-distribution-by-year', async (req, res) => {
         query = `
           SELECT FLOOR(age / 10) * 10 AS age_group, SUM(value) as count, '${queryType}' as year
           FROM ${queryType}_future
-          WHERE yyyymm = '${queryType}01'
           GROUP BY age_group
           ORDER BY age_group
         `;
